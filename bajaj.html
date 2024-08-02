@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABCD123</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+        }
+        button {
+            margin-top: 10px;
+        }
+        .response {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>RA2111003020431</h1>
+    <textarea id="jsonInput" placeholder='Enter JSON like {"data": ["A","C","z"]}'></textarea>
+    <button onclick="submitData()">Submit</button>
+    <div id="error" style="color: red;"></div>
+    <div>
+        <label><input type="checkbox" value="alphabets" onclick="updateFilters()"> Alphabets</label>
+        <label><input type="checkbox" value="numbers" onclick="updateFilters()"> Numbers</label>
+        <label><input type="checkbox" value="highest_alphabet" onclick="updateFilters()"> Highest Alphabet</label>
+    </div>
+    <div class="response" id="response"></div>
+
+    <script>
+        let filters = [];
+
+        function updateFilters() {
+            filters = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+            renderResponse();
+        }
+
+        async function submitData() {
+            const input = document.getElementById('jsonInput').value;
+            try {
+                const response = await fetch('https://your-backend-url.herokuapp.com/bfhl', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: input
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Error in API response');
+                window.apiResponse = data; // Save response globally to use in renderResponse
+                document.getElementById('error').innerText = '';
+                renderResponse();
+            } catch (error) {
+                document.getElementById('error').innerText = error.message;
+                document.getElementById('response').innerText = '';
+            }
+        }
+
+        function renderResponse() {
+            const response = window.apiResponse;
+            if (!response) return;
+
+            const responseContainer = document.getElementById('response');
+            responseContainer.innerHTML = '';
+
+            if (filters.includes('alphabets')) {
+                const alphabetsDiv = document.createElement('div');
+                alphabetsDiv.innerText = `Alphabets: ${response.alphabets.join(', ')}`;
+                responseContainer.appendChild(alphabetsDiv);
+            }
+
+            if (filters.includes('numbers')) {
+                const numbersDiv = document.createElement('div');
+                numbersDiv.innerText = `Numbers: ${response.numbers.join(', ')}`;
+                responseContainer.appendChild(numbersDiv);
+            }
+
+            if (filters.includes('highest_alphabet')) {
+                const highestAlphabetDiv = document.createElement('div');
+                highestAlphabetDiv.innerText = `Highest Alphabet: ${response.highest_alphabet.join(', ')}`;
+                responseContainer.appendChild(highestAlphabetDiv);
+            }
+        }
+    </script>
+</body>
+</html>
